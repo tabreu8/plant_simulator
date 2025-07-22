@@ -1,17 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-
-// Paho MQTT Client type definitions
-declare global {
-  interface Window {
-    Paho: any;
-  }
-}
+import Navigation from './components/Navigation'
 
 export default function Home() {
   const [machineState, setMachineState] = useState<string>('connecting...')
   const [connectionStatus, setConnectionStatus] = useState<string>('Connecting to MQTT...')
+  const [machineCount, setMachineCount] = useState<number>(0)
+  const [activeConnections, setActiveConnections] = useState<number>(0)
 
   // Get configuration from environment variables with defaults
   const mqttHost = process.env.NEXT_PUBLIC_MQTT_HOST || 'localhost'
@@ -32,27 +28,30 @@ export default function Home() {
         const PahoMQTT = await import('paho-mqtt')
         
         // Create MQTT client using the correct Paho structure
-        const client = new PahoMQTT.Client(mqttHost, mqttPort, 'nextjs-client-' + Math.random().toString(16).substr(2, 8))
+        const client = new PahoMQTT.Client(mqttHost, mqttPort, 'overview-client-' + Math.random().toString(16).substr(2, 8))
 
         // Set up connection options
         const connectOptions = {
           onSuccess: () => {
             console.log(`Connected to MQTT broker at ${mqttUrl}`)
             setConnectionStatus('Connected to MQTT')
+            setActiveConnections(1)
             
-            // Subscribe to the machine state topic
+            // Subscribe to the machine state topic and general stats
             try {
               client.subscribe(machineTopic)
-              console.log(`Subscribed to topic: ${machineTopic}`)
-              setConnectionStatus('Subscribed to machine state')
+              client.subscribe(`production/${productionLine}/machines/+/production_machine_state`)
+              console.log(`Subscribed to topics`)
+              setConnectionStatus('Monitoring Production Line')
             } catch (err) {
               console.error('Failed to subscribe:', err)
-              setConnectionStatus('Failed to subscribe to topic')
+              setConnectionStatus('Failed to subscribe to topics')
             }
           },
           onFailure: (responseObject: any) => {
             console.error('Failed to connect:', responseObject.errorMessage)
             setConnectionStatus(`Connection failed: ${responseObject.errorMessage}`)
+            setActiveConnections(0)
           },
           timeout: 10,
           keepAliveInterval: 30,
@@ -61,8 +60,19 @@ export default function Home() {
         // Set up message handler
         client.onMessageArrived = (message: any) => {
           console.log('Received message:', message.destinationName, message.payloadString)
+          
           if (message.destinationName === machineTopic) {
             setMachineState(message.payloadString)
+          }
+          
+          // Count unique machines
+          if (message.destinationName.includes('production_machine_state')) {
+            setMachineCount(prev => {
+              const topicParts = message.destinationName.split('/')
+              const foundMachineId = topicParts[3]
+              // Simple way to track unique machines - in real app would use Set
+              return Math.max(prev, parseInt(foundMachineId.replace('MACHINE_', '')) || 1)
+            })
           }
         }
 
@@ -71,6 +81,7 @@ export default function Home() {
           if (responseObject.errorCode !== 0) {
             console.log('Connection lost:', responseObject.errorMessage)
             setConnectionStatus('Connection lost')
+            setActiveConnections(0)
           }
         }
 
@@ -90,73 +101,190 @@ export default function Home() {
     }
 
     connectToMQTT()
-  }, [])
+  }, [mqttHost, mqttPort, machineTopic, mqttUrl, productionLine])
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Production Line Monitor
-        </h1>
-        
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            MACHINE_001 - Material Preparation Station
-          </h2>
-          
-          <div className="space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex justify-between items-center">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Connection Status
-              </label>
-              <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                connectionStatus.includes('Connected') 
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Production Line Simulator Dashboard
+              </h1>
+              <p className="text-gray-600">
+                Real-time monitoring and visualization of {productionLine}
+              </p>
+            </div>
+            
+            <div className="text-right">
+              <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
+                connectionStatus.includes('Connected') || connectionStatus.includes('Monitoring')
                   ? 'bg-green-100 text-green-800' 
                   : connectionStatus.includes('Error') || connectionStatus.includes('Failed')
                   ? 'bg-red-100 text-red-800'
                   : 'bg-yellow-100 text-yellow-800'
               }`}>
+                <div className={`w-2 h-2 rounded-full mr-2 ${
+                  connectionStatus.includes('Connected') || connectionStatus.includes('Monitoring') ? 'bg-green-500' : 'bg-yellow-500'
+                }`}></div>
                 {connectionStatus}
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Machine State
-              </label>
-              <div className={`inline-flex items-center px-4 py-2 rounded-lg text-lg font-semibold ${
-                machineState === 'running' 
-                  ? 'bg-green-100 text-green-800 border border-green-200' 
-                  : machineState === 'idle'
-                  ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                  : machineState === 'malfunction' || machineState === 'error'
-                  ? 'bg-red-100 text-red-800 border border-red-200'
-                  : machineState === 'maintenance'
-                  ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                  : 'bg-gray-100 text-gray-800 border border-gray-200'
-              }`}>
-                {machineState.toUpperCase()}
-              </div>
-            </div>
-            
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-medium text-gray-800 mb-2">Configuration</h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div className="flex justify-between">
-                  <span>MQTT Broker:</span>
-                  <code className="bg-white p-1 rounded border">{mqttUrl}</code>
-                </div>
-                <div className="flex justify-between">
-                  <span>MQTT Topic:</span>
-                  <code className="bg-white p-1 rounded border text-xs">{machineTopic}</code>
-                </div>
               </div>
             </div>
           </div>
         </div>
-        
-        <div className="mt-6 text-center text-gray-500 text-sm">
-          Real-time data from Production Line Simulator
+
+        {/* Navigation */}
+        <Navigation />
+
+        {/* System Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Connection Status</p>
+                <p className={`text-2xl font-bold ${
+                  activeConnections > 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {activeConnections > 0 ? 'Online' : 'Offline'}
+                </p>
+              </div>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                activeConnections > 0 ? 'bg-green-100' : 'bg-red-100'
+              }`}>
+                <span className="text-2xl">
+                  {activeConnections > 0 ? '🟢' : '🔴'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Active Machines</p>
+                <p className="text-2xl font-bold text-blue-600">{machineCount}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">🏭</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Primary Machine</p>
+                <p className={`text-2xl font-bold ${
+                  machineState === 'running' ? 'text-green-600' :
+                  machineState === 'idle' ? 'text-blue-600' :
+                  machineState === 'malfunction' ? 'text-red-600' :
+                  'text-gray-600'
+                }`}>
+                  {machineState.toUpperCase()}
+                </p>
+              </div>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                machineState === 'running' ? 'bg-green-100' :
+                machineState === 'idle' ? 'bg-blue-100' :
+                machineState === 'malfunction' ? 'bg-red-100' :
+                'bg-gray-100'
+              }`}>
+                <span className="text-2xl">
+                  {machineState === 'running' ? '▶️' :
+                   machineState === 'idle' ? '⏸️' :
+                   machineState === 'malfunction' ? '⚠️' : '❓'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Production Line</p>
+                <p className="text-2xl font-bold text-purple-600">{productionLine}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">⚙️</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a 
+              href="/production-line"
+              className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+            >
+              <div className="flex items-center">
+                <span className="text-3xl mr-4">🏭</span>
+                <div>
+                  <h3 className="font-semibold text-gray-800">View Production Line</h3>
+                  <p className="text-sm text-gray-600">Visual layout of machines, buffers, and material flow</p>
+                </div>
+              </div>
+            </a>
+            
+            <a 
+              href="/sensors"
+              className="block p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200"
+            >
+              <div className="flex items-center">
+                <span className="text-3xl mr-4">📡</span>
+                <div>
+                  <h3 className="font-semibold text-gray-800">Monitor Sensors</h3>
+                  <p className="text-sm text-gray-600">Detailed sensor and actuator data for each machine</p>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        {/* Configuration Display */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">System Configuration</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-medium text-gray-800 mb-2">MQTT Broker</h3>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex justify-between">
+                  <span>Host:</span>
+                  <code className="bg-gray-100 p-1 rounded">{mqttHost}</code>
+                </div>
+                <div className="flex justify-between">
+                  <span>Port:</span>
+                  <code className="bg-gray-100 p-1 rounded">{mqttPort}</code>
+                </div>
+                <div className="flex justify-between">
+                  <span>Protocol:</span>
+                  <code className="bg-gray-100 p-1 rounded">{mqttProtocol}</code>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-medium text-gray-800 mb-2">Production Configuration</h3>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex justify-between">
+                  <span>Production Line:</span>
+                  <code className="bg-gray-100 p-1 rounded">{productionLine}</code>
+                </div>
+                <div className="flex justify-between">
+                  <span>Primary Machine:</span>
+                  <code className="bg-gray-100 p-1 rounded">{machineId}</code>
+                </div>
+                <div className="flex justify-between">
+                  <span>Topic:</span>
+                  <code className="bg-gray-100 p-1 rounded text-xs">{machineTopic}</code>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

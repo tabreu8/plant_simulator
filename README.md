@@ -1,28 +1,52 @@
 # Production Line Simulator
 
-A comprehensive Python-based production line simulator that models industrial manufacturing processes with realistic sensor data, actuator control, MQTT communication, and real-time web monitoring.
+A comprehensive Python-based production line simulator that models industrial manufacturing processes with realistic sensor data, actuator control, MQTT communication, and **real-time web dashboard visualization**.
 
 ## 🏗️ System Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Web UI        │    │  MQTT Broker     │    │ Plant Simulator │
-│   (Next.js)     │◄──►│  (Mosquitto)     │◄──►│   (Python)      │
-│   Port: 3000    │    │  Port: 1883/9001 │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+┌─────────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Dashboard UI      │    │  MQTT Broker     │    │ Plant Simulator │
+│   (Next.js React)   │◄──►│  (Mosquitto)     │◄──►│   (Python)      │
+│   Port: 3000        │    │  Port: 1883/9001 │    │                 │
+│ • Production Line   │    │ • WebSocket      │    │ • 3 Machines    │
+│ • Sensor Monitor    │    │ • MQTT Topics    │    │ • Buffers       │
+│ • Real-time Data    │    │ • Message Broker │    │ • Sensors       │
+└─────────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-## 🚀 Quick Start
+## 🎯 Features
+
+### 🏭 Production Line Simulator
+- **3-Machine Production Line**: Material Preparation → Assembly → Quality Inspection
+- **Realistic Sensor Data**: Temperature, pressure, speed, quality metrics
+- **Smart Actuator Control**: Conveyors, pumps, valves with feedback
+- **Buffer Management**: Inter-machine inventory tracking
+- **Quality Control**: Inspection with pass/fail decisions
+
+### � Web Dashboard
+- **Production Line Visualization**: Top-down view with machine status, phases, and current parts
+- **Buffer Monitoring**: Real-time buffer utilization between machines
+- **Sensor Dashboard**: Detailed sensor data with quality indicators for each machine
+- **System Overview**: Connection status, machine count, and key metrics
+- **Responsive Design**: Mobile-friendly interface with intuitive navigation
+
+## �🚀 Quick Start
 
 ### Using Docker Compose (Recommended)
 
 ```bash
-# Start all services
+# Start all services (MQTT broker + Plant simulator + Web UI)
 docker-compose up --build
 
 # Access the web dashboard
 open http://localhost:3000
 ```
+
+This will start:
+- **MQTT Broker**: `localhost:1883` (TCP) / `localhost:9001` (WebSocket) 
+- **Plant Simulator**: Publishing real-time production data
+- **Web Dashboard**: `http://localhost:3000` with live visualization
 
 ### Manual Setup
 
@@ -37,7 +61,27 @@ cd ../.. && python simulator/main.py
 cd UI && npm install && npm run dev
 ```
 
-## 📖 Documentation
+## � Dashboard Pages
+
+### 1. Overview (`/`)
+- System connection status
+- Active machine count
+- Primary machine state
+- Quick navigation links
+
+### 2. Production Line (`/production-line`)
+- **Top-down factory layout** with 3 machines positioned horizontally
+- **Machine status display**: State, phase, current part production
+- **Buffer visualization**: Part count and capacity between machines
+- **Conveyor animation**: Material flow representation
+
+### 3. Sensor Monitor (`/sensors`)
+- **Machine selection dropdown** for detailed monitoring
+- **Real-time sensor data**: Temperature, pressure, speed with units
+- **Actuator status**: Conveyor, pump, valve states and power consumption
+- **Quality indicators**: Visual good/poor/bad status for all sensors
+
+## �📖 Documentation
 
 **[Complete Production Simulator Guide](simulator/docs/PRODUCTION_SIMULATOR_GUIDE.md)** - Everything you need:
 
@@ -47,6 +91,14 @@ cd UI && npm install && npm run dev
 - **Quality Control**: Inspection process and quality metrics
 - **Quick Start**: Docker and local development setup
 - **Configuration & Troubleshooting**: Setup and common issues
+
+**[UI Dashboard Guide](UI/README.md)** - Web interface details:
+
+- **Component Architecture**: React components and design patterns
+- **MQTT Integration**: WebSocket connection and data flow
+- **Visual States**: Machine status colors and indicators
+- **Configuration**: Environment variables and customization
+- **Troubleshooting**: Common issues and debug commands
 
 **Additional Resources:**
 - **[Deployment Guide](simulator/docs/DEPLOYMENT.md)** - Production deployment instructions
