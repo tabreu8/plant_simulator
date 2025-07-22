@@ -63,6 +63,9 @@ export default function Home() {
         client.onMessageArrived = (message: any) => {
           console.log('Received message:', message.destinationName, message.payloadString)
           
+          // Update connection status to show we're receiving data
+          setConnectionStatus('Connected - Receiving Data')
+          
           if (message.destinationName === machineTopic) {
             setMachineState(message.payloadString)
           }

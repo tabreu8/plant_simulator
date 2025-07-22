@@ -1,6 +1,16 @@
 # Production Line Simulator
-
 A comprehensive Python-based production line simulator that models industrial manufacturing processes with realistic sensor data, actuator control, MQTT communication, and **real-time web dashboard visualization**.
+
+### Web Dashboard
+- **Production Line Visualization**: Top-down view with machine status, phases, and current parts
+- **Buffer Monitoring**: Real-time buffer utilization between machines
+- **Sensor Dashboard**: Detailed sensor data with quality indicators for each machine
+- **System Overview**: Connection status, machine count, and key metrics
+- **Responsive Design**: Mobile-friendly interface with intuitive navigation
+
+![Dashboard Overview](docs/homepage.png)
+*Main dashboard showing system overview, connection status, and quick navigation*
+
 
 ## 🏗️ System Architecture
 
@@ -75,11 +85,20 @@ cd UI && npm install && npm run dev
 - **Buffer visualization**: Part count and capacity between machines
 - **Conveyor animation**: Material flow representation
 
+![Production Line View](docs/production_line.png)
+*Production line visualization showing machine layout, buffers, and real-time status*
+
 ### 3. Sensor Monitor (`/sensors`)
 - **Machine selection dropdown** for detailed monitoring
 - **Real-time sensor data**: Temperature, pressure, speed with units
 - **Actuator status**: Conveyor, pump, valve states and power consumption
 - **Quality indicators**: Visual good/poor/bad status for all sensors
+
+![Sensor Monitor Cards](docs/sensor_page_cards.png)
+*Sensor and actuator monitoring with real-time data cards*
+
+![Sensor Data Chart](docs/sensor_page_chart.png)
+*Real-time data visualization with interactive chart selection*
 
 ## �📖 Documentation
 
@@ -115,6 +134,9 @@ cd UI && npm install && npm run dev
 - **Comprehensive Testing**: Full test suite for all components
 
 ## 🎯 MQTT Data Streams
+
+![MQTT Data Flow](docs/mqtt_data.png)
+*Real-time MQTT data publishing and subscription architecture*
 
 ### Machine Status (All Machines)
 ```bash
