@@ -34,14 +34,14 @@ A comprehensive Python-based production line simulator that models industrial ma
 - **Buffer Management**: Inter-machine inventory tracking
 - **Quality Control**: Inspection with pass/fail decisions
 
-### � Web Dashboard
+### Web Dashboard
 - **Production Line Visualization**: Top-down view with machine status, phases, and current parts
 - **Buffer Monitoring**: Real-time buffer utilization between machines
 - **Sensor Dashboard**: Detailed sensor data with quality indicators for each machine
 - **System Overview**: Connection status, machine count, and key metrics
 - **Responsive Design**: Mobile-friendly interface with intuitive navigation
 
-## �🚀 Quick Start
+## 🚀 Quick Start
 
 ### Using Docker Compose (Recommended)
 
@@ -71,7 +71,7 @@ cd ../.. && python simulator/main.py
 cd UI && npm install && npm run dev
 ```
 
-## � Dashboard Pages
+## Dashboard Pages
 
 ### 1. Overview (`/`)
 - System connection status
@@ -100,7 +100,7 @@ cd UI && npm install && npm run dev
 ![Sensor Data Chart](docs/sensor_page_chart.png)
 *Real-time data visualization with interactive chart selection*
 
-## �📖 Documentation
+## 📖 Documentation
 
 **[Complete Production Simulator Guide](simulator/docs/PRODUCTION_SIMULATOR_GUIDE.md)** - Everything you need:
 
