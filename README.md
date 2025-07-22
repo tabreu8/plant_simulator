@@ -17,7 +17,7 @@ A comprehensive Python-based production line simulator that models industrial ma
 ```
 ┌─────────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Dashboard UI      │    │  MQTT Broker     │    │ Plant Simulator │
-│   (Next.js React)   │◄──►│  (Mosquitto)     │◄──►│   (Python)      │
+│   (Next.js React)   │◄──►│  (CoreFlux)      │◄──►│   (Python)      │
 │   Port: 3000        │    │  Port: 1883/9001 │    │                 │
 │ • Production Line   │    │ • WebSocket      │    │ • 3 Machines    │
 │ • Sensor Monitor    │    │ • MQTT Topics    │    │ • Buffers       │
@@ -54,7 +54,7 @@ open http://localhost:3000
 ```
 
 This will start:
-- **MQTT Broker**: `localhost:1883` (TCP) / `localhost:9001` (WebSocket) 
+- **MQTT Broker**: `localhost:1883` (TCP) / `localhost:9001` (WebSocket) - CoreFlux MQTT Broker
 - **Plant Simulator**: Publishing real-time production data
 - **Web Dashboard**: `http://localhost:3000` with live visualization
 

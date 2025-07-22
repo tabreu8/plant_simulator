@@ -25,20 +25,16 @@ services:
       start_period: 40s
 
   mqtt-broker:
-    image: eclipse-mosquitto:2.0
+    image: coreflux/coreflux-mqtt-broker:1.6.4
     container_name: mqtt_broker
     restart: unless-stopped
     ports:
       - "1883:1883"
-      - "9001:9001"  # WebSocket port for web clients
-    volumes:
-      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - mqtt_data:/mosquitto/data
-      - mqtt_logs:/mosquitto/log
+      - "9001:5000"  # WebSocket port for web clients (external 9001 -> internal 5000)
     networks:
       - plant-network
     healthcheck:
-      test: ["CMD-SHELL", "mosquitto_pub -h localhost -t test -m 'health check' || exit 1"]
+      test: ["CMD-SHELL", "nc -z localhost 1883 || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -47,7 +43,3 @@ services:
 networks:
   plant-network:
     driver: bridge
-
-volumes:
-  mqtt_data:
-  mqtt_logs:

@@ -2,24 +2,14 @@
 services:
   # MQTT Broker Service
   mqtt-broker:
-    image: eclipse-mosquitto:2.0
+    image: coreflux/coreflux-mqtt-broker:1.6.4
     container_name: mqtt_broker_global
     ports:
       - "1883:1883"      # MQTT port
-      - "9001:9001"      # WebSocket port for web clients
-    volumes:
-      - ./simulator/docker/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - mqtt_data:/mosquitto/data
-      - mqtt_logs:/mosquitto/log
+      - "9001:5000"      # WebSocket port for web clients (external 9001 -> internal 5000)
     restart: unless-stopped
     networks:
       - plant_network
-    healthcheck:
-      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "test", "-m", "health_check"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
 
   # Production Line Simulator Service
   plant-simulator:
@@ -82,10 +72,6 @@ services:
       - plant_network
 
 volumes:
-  mqtt_data:
-    driver: local
-  mqtt_logs:
-    driver: local
   simulation_logs:
     driver: local
 
