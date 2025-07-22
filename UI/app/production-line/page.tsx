@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Machine from '../components/Machine'
 import Buffer from '../components/Buffer'
+import QualityResult from '../components/QualityResult'
 
 // TypeScript interfaces
 interface MachineData {
@@ -19,6 +20,9 @@ interface MachineData {
   inputBufferParts?: string[]
   outputBufferParts?: string[]
   sensors?: Record<string, any>
+  lastInspectedPart?: string | null
+  inspectionResult?: string | null
+  inspectionTimestamp?: string
 }
 
 interface BufferData {
@@ -134,6 +138,17 @@ export default function ProductionLinePage() {
                     machine.outputBufferParts = []
                   }
                   break
+                case 'production_inspection_status':
+                  // Handle quality inspection result for MACHINE_003 only during sorting phase
+                  if (machineId === 'MACHINE_003' && machine.phase === 'sorting') {
+                    machine.inspectionResult = payload
+                    machine.inspectionTimestamp = new Date().toISOString()
+                    // Assume the last part processed is the one being inspected
+                    if (machine.currentPart) {
+                      machine.lastInspectedPart = machine.currentPart
+                    }
+                  }
+                  break
                 default:
                   // Store sensor data
                   if (fieldName.startsWith('sensor_') || fieldName.startsWith('actuator_')) {
@@ -198,11 +213,12 @@ export default function ProductionLinePage() {
       { type: 'buffer', id: 'MACHINE_002_OUTPUT', machineId: 'MACHINE_002', bufferType: 'output' },
       { type: 'buffer', id: 'MACHINE_003_INPUT', machineId: 'MACHINE_003', bufferType: 'input' },
       { type: 'machine', id: 'MACHINE_003' },
-      { type: 'buffer', id: 'MACHINE_003_OUTPUT', machineId: 'MACHINE_003', bufferType: 'output' }
+      { type: 'quality', id: 'MACHINE_003_QUALITY', machineId: 'MACHINE_003' }
     ]
 
     const machinePositions: Record<string, { x: number; y: number }> = {}
     const bufferPositions: Record<string, { x: number; y: number }> = {}
+    const qualityPositions: Record<string, { x: number; y: number }> = {}
 
     productionFlow.forEach((item, index) => {
       const col = index
@@ -213,12 +229,15 @@ export default function ProductionLinePage() {
         machinePositions[item.id] = { x, y }
       } else if (item.type === 'buffer') {
         bufferPositions[item.id] = { x, y }
+      } else if (item.type === 'quality') {
+        qualityPositions[item.id] = { x, y }
       }
     })
 
     return { 
       machinePositions, 
       bufferPositions, 
+      qualityPositions,
       productionFlow,
       layoutDimensions: {
         width: layoutConfig.cols * tileWidth,
@@ -228,7 +247,7 @@ export default function ProductionLinePage() {
   }
 
   // Get tile-based positions
-  const { machinePositions, bufferPositions, productionFlow, layoutDimensions } = createTileLayout()
+  const { machinePositions, bufferPositions, qualityPositions, productionFlow, layoutDimensions } = createTileLayout()
 
   // Create buffer data from real MQTT data
   const getBufferData = () => {
@@ -242,11 +261,13 @@ export default function ProductionLinePage() {
         capacity: 3 // reduced to 3 slots
       }
       
-      // Output buffer
-      buffers[`${machineId}_OUTPUT`] = {
-        id: `Out`,
-        parts: machine.outputBufferParts || [],
-        capacity: 3 // reduced to 3 slots
+      // Output buffer - except for MACHINE_003 which has quality result instead
+      if (machineId !== 'MACHINE_003') {
+        buffers[`${machineId}_OUTPUT`] = {
+          id: `Out`,
+          parts: machine.outputBufferParts || [],
+          capacity: 3 // reduced to 3 slots
+        }
       }
     })
     
@@ -377,6 +398,22 @@ export default function ProductionLinePage() {
                   currentPart={machine?.currentPart}
                   position={position}
                   sensors={machine?.sensors}
+                />
+              )
+            })}
+
+            {/* Quality Result Widget for MACHINE_003 */}
+            {Object.entries(qualityPositions).map(([qualityId, position]) => {
+              const machineId = qualityId.replace('_QUALITY', '')
+              const machine = productionData.machines[machineId]
+              return (
+                <QualityResult
+                  key={qualityId}
+                  position={position}
+                  lastPart={machine?.lastInspectedPart || machine?.currentPart || null}
+                  qualityResult={machine?.inspectionResult || null}
+                  timestamp={machine?.inspectionTimestamp}
+                  machinePhase={machine?.phase}
                 />
               )
             })}
