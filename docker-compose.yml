@@ -1,0 +1,97 @@
+
+services:
+  # MQTT Broker Service
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: mqtt_broker_global
+    ports:
+      - "1883:1883"      # MQTT port
+      - "9001:9001"      # WebSocket port for web clients
+    volumes:
+      - ./simulator/docker/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mqtt_data:/mosquitto/data
+      - mqtt_logs:/mosquitto/log
+    restart: unless-stopped
+    networks:
+      - plant_network
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "test", "-m", "health_check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Production Line Simulator Service
+  plant-simulator:
+    build:
+      context: ./simulator
+      dockerfile: docker/Dockerfile
+    container_name: plant_simulator_global
+    depends_on:
+      mqtt-broker:
+        condition: service_healthy
+    environment:
+      # MQTT Configuration
+      - MQTT_BROKER_HOST=mqtt-broker
+      - MQTT_BROKER_PORT=1883
+      - MQTT_QOS=1
+      - MQTT_RETAIN=false
+      
+      # Production Line Configuration
+      - PRODUCTION_LINE_NAME=Assembly_Line_A
+      - SIMULATION_SPEED=1.0
+      - LOG_LEVEL=INFO
+      
+      # Machine Configuration
+      - ENABLE_QUALITY_CONTROL=true
+      - ENABLE_MAINTENANCE_SIMULATION=true
+    volumes:
+      - simulation_logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - plant_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Production Line Monitoring UI
+  ui-dashboard:
+    build:
+      context: ./UI
+      dockerfile: Dockerfile
+    container_name: plant_ui_global
+    ports:
+      - "3000:3000"      # Web UI port
+    depends_on:
+      - mqtt-broker
+      - plant-simulator
+    environment:
+      # MQTT Configuration for UI
+      - NEXT_PUBLIC_MQTT_HOST=localhost
+      - NEXT_PUBLIC_MQTT_PORT=9001
+      - NEXT_PUBLIC_MQTT_PROTOCOL=ws
+      
+      # Production Line Configuration
+      - NEXT_PUBLIC_PRODUCTION_LINE=Assembly_Line_A
+      - NEXT_PUBLIC_MACHINE_ID=MACHINE_001
+    restart: unless-stopped
+    networks:
+      - plant_network
+
+volumes:
+  mqtt_data:
+    driver: local
+  mqtt_logs:
+    driver: local
+  simulation_logs:
+    driver: local
+
+networks:
+  plant_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

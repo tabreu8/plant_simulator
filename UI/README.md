@@ -1,83 +1,117 @@
-# User Interface (UI)
+# Machine Monitor - Production Line UI
 
-This directory contains the user interface components for the Production Line Manufacturing System.
+A Next.js React application that provides real-time monitoring of the production line simulator via MQTT.
 
-## Overview
+## Features
 
-The UI provides real-time monitoring and control capabilities for the production line simulator, including:
+- **Real-time MQTT Connection**: Connects to the production line simulator via WebSocket MQTT
+- **Machine State Monitoring**: Displays the current state of MACHINE_001 (Material Preparation)
+- **Connection Status**: Shows MQTT broker connection status
+- **Responsive Design**: Built with Tailwind CSS for modern styling
+- **TypeScript**: Fully typed for better development experience
 
-- **Real-time Dashboard**: Live production metrics and machine status
-- **Machine Monitoring**: Individual machine states, sensors, and actuators
-- **Production Management**: Order tracking, quality metrics, and throughput
-- **Alarm Management**: Real-time alerts and notifications
-- **Historical Data**: Trends, reports, and analytics
+## Prerequisites
 
-## Planned Components
+1. **Production Line Simulator**: Must be running with MQTT broker
+2. **Node.js**: Version 18+ required
+3. **WebSocket Support**: MQTT broker must have WebSocket enabled on port 9001
 
-### Web Interface
-- React/Vue.js dashboard for production monitoring
-- Real-time MQTT data visualization
-- Interactive machine status displays
-- Production analytics and reporting
+## Quick Start
 
-### Desktop Application  
-- Cross-platform desktop app for operators
-- HMI-style interface for production control
-- Offline capability with data synchronization
-- Advanced diagnostics and troubleshooting tools
-
-### Mobile Interface
-- Mobile-responsive web app
-- Push notifications for critical alarms
-- Quick status overview for managers
-- Remote monitoring capabilities
-
-## Integration with Simulator
-
-The UI connects to the production line simulator via:
-
-- **MQTT Topics**: Real-time data subscription from `production/Assembly_Line_A/#`
-- **WebSocket Connection**: For real-time updates and bidirectional communication
-- **REST API**: For configuration and historical data (future enhancement)
-
-## MQTT Data Sources
-
-The UI will consume data from these simulator topics:
-
-### Machine Status
-```
-production/Assembly_Line_A/machines/MACHINE_001/production_machine_state
-production/Assembly_Line_A/machines/MACHINE_001/production_current_part_id
-production/Assembly_Line_A/machines/MACHINE_001/production_parts_processed_today
-```
-
-### Sensor Data
-```
-production/Assembly_Line_A/machines/MACHINE_001/sensor_temperature
-production/Assembly_Line_A/machines/MACHINE_002/sensor_force
-production/Assembly_Line_A/machines/MACHINE_003/sensor_camera
-```
-
-### Production Metrics
-```
-production/Assembly_Line_A/production_data  # JSON with overall metrics
-```
-
-## Development Setup
-
-*Setup instructions will be added when UI components are implemented*
-
+### 1. Install Dependencies
 ```bash
-cd UI/
-# npm install (for web interface)
-# pip install -r requirements.txt (for desktop app)
+cd UI/machine-monitor
+npm install
 ```
 
-## Future Enhancements
+### 2. Start the Production Line Simulator
+```bash
+# In the simulator directory
+cd ../../simulator
+docker-compose -f docker/docker-compose.yml up --build
+```
 
-- Multi-line support for complex manufacturing facilities
-- Advanced analytics with machine learning insights
-- Integration with ERP/MES systems
-- Custom dashboard configuration
-- Role-based access control
-- Data export and reporting tools
+This starts:
+- MQTT Broker on port 1883 (standard MQTT) and 9001 (WebSocket)
+- Production Line Simulator publishing real-time data
+
+### 3. Start the UI Development Server
+```bash
+# In the UI directory
+npm run dev
+```
+
+### 4. Open in Browser
+Navigate to [http://localhost:3000](http://localhost:3000)
+
+## MQTT Configuration
+
+The application connects to:
+- **Broker URL**: `ws://localhost:9001`
+- **Topic**: `production/Assembly_Line_A/machines/MACHINE_001/production_machine_state`
+- **Connection**: WebSocket over MQTT
+
+## Expected Machine States
+
+The machine can be in one of these states:
+- **idle**: Machine ready but not processing (yellow)
+- **running**: Actively processing parts (green)
+- **malfunction**: Temporary fault state (red)
+- **maintenance**: Scheduled or corrective maintenance (blue)
+- **error**: Critical fault requiring intervention (dark red)
+
+## Development
+
+### Project Structure
+```
+machine-monitor/
+├── src/
+│   └── app/
+│       ├── page.tsx          # Main monitoring page
+│       ├── layout.tsx         # App layout
+│       └── globals.css        # Global styles
+├── package.json               # Dependencies and scripts
+└── tailwind.config.ts         # Tailwind configuration
+```
+
+### Available Scripts
+- `npm run dev`: Start development server with Turbopack
+- `npm run build`: Build for production
+- `npm run start`: Start production server
+- `npm run lint`: Run ESLint
+
+## Troubleshooting
+
+### Connection Issues
+1. **MQTT Broker Not Running**: Ensure Docker containers are up
+2. **WebSocket Port Blocked**: Check if port 9001 is accessible
+3. **CORS Issues**: Next.js dev server should handle this automatically
+
+### No Data Received
+1. **Simulator Not Publishing**: Check simulator logs
+2. **Wrong Topic**: Verify the MQTT topic matches exactly
+3. **Network Issues**: Ensure localhost connectivity
+
+### Debug Information
+The UI includes a debug panel showing:
+- Connection status
+- Current machine state
+- Last update timestamp
+
+## Next Steps
+
+This is a basic implementation that monitors a single topic. Future enhancements could include:
+- Multiple machine monitoring
+- Historical data visualization
+- Sensor data charts
+- Production metrics dashboard
+- Alarm management
+- Mobile responsiveness improvements
+
+## Technical Details
+
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **MQTT Client**: mqtt.js library
+- **Real-time Updates**: WebSocket connection to MQTT broker

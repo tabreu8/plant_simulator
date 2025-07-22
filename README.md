@@ -1,44 +1,41 @@
-# Production Line Manufacturing System
+# Production Line Simulator
 
-A comprehensive manufacturing system that includes both an industrial production line simulator and a user interface for monitoring and control.
+A comprehensive Python-based production line simulator that models industrial manufacturing processes with realistic sensor data, actuator control, MQTT communication, and real-time web monitoring.
 
-## 🏗️ Project Structure
+## 🏗️ System Architecture
 
 ```
-plant_simulator/
-├── simulator/              # Production Line Simulator Backend
-│   ├── src/                # Core simulation code
-│   ├── tests/              # Comprehensive test suite
-│   ├── scripts/            # Utility and validation scripts
-│   ├── docker/             # Docker configuration files
-│   ├── docs/               # Complete documentation
-│   ├── main.py             # Simulator entry point
-│   └── requirements.txt    # Python dependencies
-├── UI/                     # User Interface (Web/Desktop)
-│   └── (UI components will be added here)
-├── README.md               # This file
-└── .github/                # GitHub configuration
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Web UI        │    │  MQTT Broker     │    │ Plant Simulator │
+│   (Next.js)     │◄──►│  (Mosquitto)     │◄──►│   (Python)      │
+│   Port: 3000    │    │  Port: 1883/9001 │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
 ## 🚀 Quick Start
 
-### Production Line Simulator
-
-The simulator provides a realistic 3-machine production line with MQTT data publishing:
+### Using Docker Compose (Recommended)
 
 ```bash
-cd simulator/
-docker-compose -f docker/docker-compose.yml up --build
+# Start all services
+docker-compose up --build
+
+# Access the web dashboard
+open http://localhost:3000
 ```
 
-This starts:
-- **Production Line Simulator**: 3-station manufacturing line (Material Prep → Assembly → Quality Inspection)
-- **MQTT Broker**: Real-time data publishing on port 1883
-- **Comprehensive Data Streams**: Machine states, sensor data, production metrics
+### Manual Setup
 
-### User Interface
+```bash
+# 1. Start MQTT Broker
+cd simulator/docker && docker-compose up mqtt-broker -d
 
-*UI components will be added to the `UI/` directory*
+# 2. Start Plant Simulator  
+cd ../.. && python simulator/main.py
+
+# 3. Start Web UI
+cd UI && npm install && npm run dev
+```
 
 ## 📖 Documentation
 
