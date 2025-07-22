@@ -2,9 +2,11 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Navigation from '../components/Navigation'
 import Machine from '../components/Machine'
 import Buffer from '../components/Buffer'
 import QualityResult from '../components/QualityResult'
+import StatusBadge from '../components/StatusBadge'
 
 // TypeScript interfaces
 interface MachineData {
@@ -196,7 +198,7 @@ export default function ProductionLinePage() {
     cols: 9,           // Total columns: Input + Machine + Output for 3 machines
     rows: 1,           // Single row layout
     startX: 20,        // Starting X position
-    startY: 80        // Starting Y position (adjusted slightly)
+    startY: 50        // Starting Y position (adjusted slightly)
   }
 
   // Simple tile-based positioning
@@ -284,65 +286,28 @@ export default function ProductionLinePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Return Button */}
-        <div className="mb-4">
-          <Link 
-            href="/" 
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 shadow-md"
-          >
-            <span>←</span>
-            <span>Back to Main</span>
-          </Link>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Navigation */}
+      <Navigation 
+        connectionStatus={connectionStatus}
+        lastUpdate={productionData.lastUpdate}
+      />
 
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Production Line Monitor
-              </h1>
-              <p className="text-gray-600">
-                Real-time visualization of {productionLine} manufacturing process
-              </p>
-            </div>
-            
-            <div className="text-right">
-              <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
-                connectionStatus.includes('Connected') 
-                  ? 'bg-green-100 text-green-800' 
-                  : connectionStatus.includes('Error') || connectionStatus.includes('Failed')
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                <div className={`w-2 h-2 rounded-full mr-2 ${
-                  connectionStatus.includes('Connected') ? 'bg-green-500' : 'bg-yellow-500'
-                }`}></div>
-                {connectionStatus}
-              </div>
-              {productionData.lastUpdate && (
-                <div className="text-xs text-gray-500 mt-1">
-                  Last update: {new Date(productionData.lastUpdate).toLocaleTimeString()}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto p-4">
 
         {/* Production Line Visualization */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Production Line Layout - Tile Grid System
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h2 className="text-base font-semibold text-gray-800 mb-3">
+            Production Line Layout
           </h2>
           
           {/* Tile-based Production Line Container */}
           <div 
             className="relative bg-gray-50 border-2 border-gray-200 rounded-lg overflow-visible mx-auto"
             style={{ 
-              width: layoutDimensions.width + 80, // Reduced padding to ensure fit
-              height: layoutDimensions.height + 100 
+              width: layoutDimensions.width + 60, // Increased padding for more space
+              height: layoutDimensions.height + 80 // Increased height padding for more space
             }}
           >
             {/* Tile Grid Background */}
@@ -421,34 +386,127 @@ export default function ProductionLinePage() {
             {/* Material Flow Labels */}
             <div className="absolute top-4 left-4 bg-white bg-opacity-90 rounded-lg p-2 text-sm">
               <div className="font-semibold text-gray-800 mb-1">Material Flow</div>
-              <div className="flex items-center space-x-4 text-xs text-gray-600">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-gray-400 rounded mr-1"></div>
-                  Raw Materials
+              
+            </div>
+          </div>
+        </div>
+
+        {/* Parts Tracking Section */}
+        <div className="bg-white rounded-lg shadow-md p-4 mt-4">
+          <h2 className="text-base font-semibold text-gray-800 mb-3">
+            Parts in Production
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Current Parts in Machines */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
+              <h3 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                Currently Processing
+              </h3>
+              <div className="space-y-2">
+                {Object.values(productionData.machines)
+                  .filter(machine => machine.currentPart && machine.currentPart !== '(null)')
+                  .map((machine) => (
+                    <div key={machine.id} className="bg-white rounded-md p-2 text-xs border border-blue-200">
+                      <div className="font-medium text-gray-800">{machine.currentPart}</div>
+                      <div className="text-gray-600">{machine.name} - {machine.phase}</div>
+                    </div>
+                  ))}
+                {Object.values(productionData.machines).filter(machine => machine.currentPart && machine.currentPart !== '(null)').length === 0 && (
+                  <div className="text-gray-500 text-xs italic">No parts currently being processed</div>
+                )}
+              </div>
+            </div>
+
+            {/* Parts in Input Buffers */}
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 border border-yellow-200">
+              <h3 className="text-sm font-medium text-yellow-800 mb-2 flex items-center">
+                <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                Waiting in Input Buffers
+              </h3>
+              <div className="space-y-2">
+                {Object.entries(productionData.machines)
+                  .filter(([_, machine]) => machine.inputBufferParts && machine.inputBufferParts.length > 0)
+                  .map(([machineId, machine]) => (
+                    <div key={`input-${machineId}`} className="bg-white rounded-md p-2 text-xs border border-yellow-200">
+                      <div className="font-medium text-gray-700 mb-1">{machine.name} Input</div>
+                      {machine.inputBufferParts?.map((part, index) => (
+                        <div key={index} className="text-gray-600 ml-2">• {part}</div>
+                      ))}
+                    </div>
+                  ))}
+                {Object.values(productionData.machines).every(machine => !machine.inputBufferParts || machine.inputBufferParts.length === 0) && (
+                  <div className="text-gray-500 text-xs italic">No parts waiting in input buffers</div>
+                )}
+              </div>
+            </div>
+
+            {/* Parts in Output Buffers */}
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
+              <h3 className="text-sm font-medium text-green-800 mb-2 flex items-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                Ready in Output Buffers
+              </h3>
+              <div className="space-y-2">
+                {Object.entries(productionData.machines)
+                  .filter(([_, machine]) => machine.outputBufferParts && machine.outputBufferParts.length > 0)
+                  .map(([machineId, machine]) => (
+                    <div key={`output-${machineId}`} className="bg-white rounded-md p-2 text-xs border border-green-200">
+                      <div className="font-medium text-gray-700 mb-1">{machine.name} Output</div>
+                      {machine.outputBufferParts?.map((part, index) => (
+                        <div key={index} className="text-gray-600 ml-2">• {part}</div>
+                      ))}
+                    </div>
+                  ))}
+                {Object.values(productionData.machines).every(machine => !machine.outputBufferParts || machine.outputBufferParts.length === 0) && (
+                  <div className="text-gray-500 text-xs italic">No parts ready in output buffers</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Summary Statistics */}
+          <div className="mt-4 pt-3 border-t border-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="bg-gray-50 rounded-lg p-2">
+                <div className="text-lg font-bold text-gray-800">
+                  {Object.values(productionData.machines).filter(machine => machine.currentPart && machine.currentPart !== '(null)').length}
                 </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-blue-500 rounded mr-1"></div>
-                  Work in Progress
+                <div className="text-xs text-gray-600">Processing</div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2">
+                <div className="text-lg font-bold text-gray-800">
+                  {Object.values(productionData.machines).reduce((total, machine) => total + (machine.inputBufferParts?.length || 0), 0)}
                 </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded mr-1"></div>
-                  Finished Goods
+                <div className="text-xs text-gray-600">In Input Buffers</div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2">
+                <div className="text-lg font-bold text-gray-800">
+                  {Object.values(productionData.machines).reduce((total, machine) => total + (machine.outputBufferParts?.length || 0), 0)}
                 </div>
+                <div className="text-xs text-gray-600">In Output Buffers</div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2">
+                <div className="text-lg font-bold text-gray-800">
+                  {Object.values(productionData.machines).reduce((total, machine) => total + machine.partsProcessedToday, 0)}
+                </div>
+                <div className="text-xs text-gray-600">Completed Today</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Production Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
           {Object.values(productionData.machines).map((machine) => (
-            <div key={machine.id} className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <div key={machine.id} className="bg-white rounded-lg shadow-md p-4">
+              <h3 className="text-base font-semibold text-gray-800 mb-3">
                 {machine.name} ({machine.id})
               </h3>
               
-              <div className="space-y-3">
-                <div className="flex justify-between">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Status:</span>
                   <span className={`font-medium ${
                     machine.state === 'running' ? 'text-green-600' :
@@ -460,19 +518,19 @@ export default function ProductionLinePage() {
                   </span>
                 </div>
                 
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Current Phase:</span>
                   <span className="font-medium text-gray-800">{machine.phase}</span>
                 </div>
                 
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Current Part:</span>
                   <span className="font-medium text-gray-800">
                     {machine.currentPart || 'None'}
                   </span>
                 </div>
                 
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Parts Today:</span>
                   <span className="font-medium text-gray-800">{machine.partsProcessedToday}</span>
                 </div>

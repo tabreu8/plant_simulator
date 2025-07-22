@@ -66,9 +66,7 @@ const Buffer: React.FC<BufferProps> = ({
         before:content-[''] before:absolute before:inset-1 before:border before:border-gray-400 before:rounded-md
       `}>
         {/* Buffer Header with Container Styling */}
-        <div className="bg-gray-700 text-white text-center py-0.5 text-2xs font-medium relative">
-          <div className="absolute left-0.5 top-0.5 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></div>
-          <div className="absolute right-0.5 top-0.5 w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+        <div className="bg-gray-700 text-white text-center py-0.5 text-2xs font-medium relative rounded-t-md">
           <span className="text-2xs">{id.split(' ')[0]}</span>
         </div>
         

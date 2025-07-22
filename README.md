@@ -166,64 +166,6 @@ cd UI/
 # UI-specific setup instructions will be added here
 ```
 
-## 📊 System Status: **PRODUCTION READY** 🚀
-
-The Production Line Simulator is fully functional and ready for integration with user interfaces, HMI systems, SCADA systems, and other manufacturing applications.
-
-## 🏁 Quick Start
-
-### 1. Installation
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd plant_simulator
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### 2. Basic Usage
-
-```bash
-# Run the main simulator
-python main.py
-
-# Run comprehensive tests
-python scripts/test_runner.py
-```
-
-### 3. Docker Deployment
-
-```bash
-# Navigate to docker directory
-cd docker
-
-# Start the complete system
-docker-compose up --build
-
-# View MQTT data
-mosquitto_sub -h localhost -t "production/+/machines/+/+"
-```
-
-## 📖 Documentation
-
-**[Complete Production Simulator Guide](docs/PRODUCTION_SIMULATOR_GUIDE.md)** - Everything you need:
-
-- **Manufacturing Process**: Complete 3-station production line overview
-- **MQTT Integration**: Data publishing, topic structure, and formats  
-- **Machine Operations**: States, phases, and sensor/actuator details
-- **Quality Control**: Inspection process and quality metrics
-- **Quick Start**: Docker and local development setup
-- **Configuration & Troubleshooting**: Setup and common issues
-
-**Additional Resources:**
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
-
 ## 🏭 Manufacturing Simulation
 
 ### Machine Types
@@ -278,28 +220,6 @@ production/Assembly_Line_A/machines/MACHINE_001/actuator_conveyor
 production/Assembly_Line_A/machines/MACHINE_001/actuator_conveyor_power
 ```
 
-## 🧪 Testing
-
-### Run All Tests
-```bash
-python scripts/test_runner.py
-```
-
-### Test Categories
-- **Unit Tests**: Individual component testing
-- **Integration Tests**: Multi-component testing
-- **MQTT Tests**: Communication testing
-- **Performance Tests**: Load and performance validation
-- **Docker Tests**: Containerized system testing
-
-### Test Coverage
-- ✅ Machine simulation logic
-- ✅ Production line orchestration
-- ✅ MQTT communication
-- ✅ Configuration management
-- ✅ Error handling and recovery
-- ✅ Performance metrics calculation
-
 ## ⚙️ Configuration
 
 ### Environment Variables
@@ -324,17 +244,6 @@ Machines are configured in `src/config/settings.py` with:
 - Actuator types
 - Quality thresholds
 
-## 📊 Performance Metrics
-
-The simulator calculates and reports:
-
-- **Overall Equipment Effectiveness (OEE)**
-- **Throughput** (parts per hour)
-- **Quality Rate** (% passing inspection)
-- **Availability** (% uptime)
-- **Cycle Time** (average processing time)
-- **Buffer Utilization**
-
 ## 🔧 Development
 
 ### Adding New Machine Types
@@ -353,39 +262,10 @@ The simulator calculates and reports:
 2. Define quality thresholds in configuration
 3. Add quality metrics to reporting
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📋 Requirements
-
-### System Requirements
-- Python 3.8+
-- Docker (for containerized deployment)
-- MQTT Broker (Eclipse Mosquitto recommended)
-
-### Python Dependencies
-- `paho-mqtt`: MQTT communication
-- `pydantic`: Configuration management
-- `PyYAML`: YAML configuration files
-- `asyncio`: Asynchronous operation
-- `dataclasses-json`: JSON serialization
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For technical support and questions:
-
-1. Check the [documentation](docs/) for detailed guides
-2. Run the validation scripts in [scripts](scripts/) for system health
-3. Open an issue for bug reports or feature requests
 
 ## 🎯 Use Cases
 

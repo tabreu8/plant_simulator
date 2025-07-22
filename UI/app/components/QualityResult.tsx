@@ -12,21 +12,21 @@ export default function QualityResult({ position, lastPart, qualityResult, times
   const getQualityColor = (result: string | null, phase?: string): string => {
     // If machine is not in idle or sorting phase, show inspecting state
     if (phase && phase !== 'idle') {
-      return 'bg-yellow-500 border-yellow-600 text-white'
+      return 'bg-yellow-100 border-yellow-300 text-yellow-800'
     }
     
     switch (result?.toLowerCase()) {
       case 'ok':
       case 'pass':
       case 'good':
-        return 'bg-green-500 border-green-600 text-white'
+        return 'bg-green-100 border-green-300 text-green-800'
       case 'nok':
       case 'fail':
       case 'bad':
       case 'reject':
-        return 'bg-red-500 border-red-600 text-white'
+        return 'bg-red-100 border-red-300 text-red-800'
       default:
-        return 'bg-gray-400 border-gray-500 text-white'
+        return 'bg-gray-100 border-gray-300 text-gray-800'
     }
   }
 

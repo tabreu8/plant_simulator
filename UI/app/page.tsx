@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Navigation from './components/Navigation'
+import { StatusCard } from './components/Card'
+import StatusBadge from './components/StatusBadge'
 
 export default function Home() {
   const [machineState, setMachineState] = useState<string>('connecting...')
@@ -104,141 +106,84 @@ export default function Home() {
   }, [mqttHost, mqttPort, machineTopic, mqttUrl, productionLine])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Production Line Simulator Dashboard
-              </h1>
-              <p className="text-gray-600">
-                Real-time monitoring and visualization of {productionLine}
-              </p>
-            </div>
-            
-            <div className="text-right">
-              <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
-                connectionStatus.includes('Connected') || connectionStatus.includes('Monitoring')
-                  ? 'bg-green-100 text-green-800' 
-                  : connectionStatus.includes('Error') || connectionStatus.includes('Failed')
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                <div className={`w-2 h-2 rounded-full mr-2 ${
-                  connectionStatus.includes('Connected') || connectionStatus.includes('Monitoring') ? 'bg-green-500' : 'bg-yellow-500'
-                }`}></div>
-                {connectionStatus}
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Navigation */}
+      <Navigation 
+        connectionStatus={connectionStatus}
+      />
 
-        {/* Navigation */}
-        <Navigation />
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto p-4">
+        {/* Status Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 mt-4">
+          <StatusCard
+            title="Connection Status"
+            value={activeConnections > 0 ? 'Online' : 'Offline'}
+            status={activeConnections > 0 ? 'online' : 'offline'}
+            icon="🌐"
+            subtitle={`${activeConnections} active connection${activeConnections !== 1 ? 's' : ''}`}
+          />
 
-        {/* System Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Connection Status</p>
-                <p className={`text-2xl font-bold ${
-                  activeConnections > 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {activeConnections > 0 ? 'Online' : 'Offline'}
-                </p>
-              </div>
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                activeConnections > 0 ? 'bg-green-100' : 'bg-red-100'
-              }`}>
-                <span className="text-2xl">
-                  {activeConnections > 0 ? '🟢' : '🔴'}
-                </span>
-              </div>
-            </div>
-          </div>
+          <StatusCard
+            title="Active Machines"
+            value={machineCount}
+            status="online"
+            icon="🏭"
+            subtitle="Manufacturing units"
+          />
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Active Machines</p>
-                <p className="text-2xl font-bold text-blue-600">{machineCount}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🏭</span>
-              </div>
-            </div>
-          </div>
+          <StatusCard
+            title="Primary Machine"
+            value={machineState.toUpperCase()}
+            status={
+              machineState === 'running' ? 'online' :
+              machineState === 'idle' ? 'warning' :
+              machineState === 'malfunction' ? 'error' :
+              'offline'
+            }
+            icon={
+              machineState === 'running' ? '▶️' :
+              machineState === 'idle' ? '⏸️' :
+              machineState === 'malfunction' ? '⚠️' : '❓'
+            }
+            subtitle={machineId}
+          />
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Primary Machine</p>
-                <p className={`text-2xl font-bold ${
-                  machineState === 'running' ? 'text-green-600' :
-                  machineState === 'idle' ? 'text-blue-600' :
-                  machineState === 'malfunction' ? 'text-red-600' :
-                  'text-gray-600'
-                }`}>
-                  {machineState.toUpperCase()}
-                </p>
-              </div>
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                machineState === 'running' ? 'bg-green-100' :
-                machineState === 'idle' ? 'bg-blue-100' :
-                machineState === 'malfunction' ? 'bg-red-100' :
-                'bg-gray-100'
-              }`}>
-                <span className="text-2xl">
-                  {machineState === 'running' ? '▶️' :
-                   machineState === 'idle' ? '⏸️' :
-                   machineState === 'malfunction' ? '⚠️' : '❓'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Production Line</p>
-                <p className="text-2xl font-bold text-purple-600">{productionLine}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">⚙️</span>
-              </div>
-            </div>
-          </div>
+          <StatusCard
+            title="Production Line"
+            value={productionLine}
+            status="online"
+            icon="⚙️"
+            subtitle="Assembly line"
+          />
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <a 
               href="/production-line"
-              className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+              className="block p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm transition-all duration-200 group"
             >
               <div className="flex items-center">
-                <span className="text-3xl mr-4">🏭</span>
+                <span className="text-2xl mr-3 group-hover:scale-105 transition-transform duration-200">🏭</span>
                 <div>
-                  <h3 className="font-semibold text-gray-800">View Production Line</h3>
-                  <p className="text-sm text-gray-600">Visual layout of machines, buffers, and material flow</p>
+                  <h3 className="font-semibold text-gray-800 text-sm">View Production Line</h3>
+                  <p className="text-xs text-gray-600">Visual layout and material flow</p>
                 </div>
               </div>
             </a>
             
             <a 
               href="/sensors"
-              className="block p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200"
+              className="block p-3 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 hover:shadow-sm transition-all duration-200 group"
             >
               <div className="flex items-center">
-                <span className="text-3xl mr-4">📡</span>
+                <span className="text-2xl mr-3 group-hover:scale-105 transition-transform duration-200">📡</span>
                 <div>
-                  <h3 className="font-semibold text-gray-800">Monitor Sensors</h3>
-                  <p className="text-sm text-gray-600">Detailed sensor and actuator data for each machine</p>
+                  <h3 className="font-semibold text-gray-800 text-sm">Monitor Sensors</h3>
+                  <p className="text-xs text-gray-600">Real-time sensor data</p>
                 </div>
               </div>
             </a>
@@ -246,41 +191,43 @@ export default function Home() {
         </div>
 
         {/* Configuration Display */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">System Configuration</h2>
+        <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">System Configuration</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-medium text-gray-800 mb-2">MQTT Broker</h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div className="flex justify-between">
-                  <span>Host:</span>
-                  <code className="bg-gray-100 p-1 rounded">{mqttHost}</code>
+              <h3 className="text-sm font-medium text-gray-800 mb-2">MQTT Broker</h3>
+              <div className="space-y-2 text-xs text-gray-600">
+                <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                  <span className="font-medium">Host:</span>
+                  <code className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">{mqttHost}</code>
                 </div>
-                <div className="flex justify-between">
-                  <span>Port:</span>
-                  <code className="bg-gray-100 p-1 rounded">{mqttPort}</code>
+                <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                  <span className="font-medium">Port:</span>
+                  <code className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">{mqttPort}</code>
                 </div>
-                <div className="flex justify-between">
-                  <span>Protocol:</span>
-                  <code className="bg-gray-100 p-1 rounded">{mqttProtocol}</code>
+                <div className="flex justify-between items-center py-1">
+                  <span className="font-medium">Protocol:</span>
+                  <code className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">{mqttProtocol}</code>
                 </div>
               </div>
             </div>
             
             <div>
-              <h3 className="font-medium text-gray-800 mb-2">Production Configuration</h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div className="flex justify-between">
-                  <span>Production Line:</span>
-                  <code className="bg-gray-100 p-1 rounded">{productionLine}</code>
+              <h3 className="text-sm font-medium text-gray-800 mb-2">Production Configuration</h3>
+              <div className="space-y-2 text-xs text-gray-600">
+                <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                  <span className="font-medium">Production Line:</span>
+                  <code className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">{productionLine}</code>
                 </div>
-                <div className="flex justify-between">
-                  <span>Primary Machine:</span>
-                  <code className="bg-gray-100 p-1 rounded">{machineId}</code>
+                <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                  <span className="font-medium">Primary Machine:</span>
+                  <code className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">{machineId}</code>
                 </div>
-                <div className="flex justify-between">
-                  <span>Topic:</span>
-                  <code className="bg-gray-100 p-1 rounded text-xs">{machineTopic}</code>
+                <div className="flex justify-between items-start py-2">
+                  <span className="font-medium">Topic:</span>
+                  <code className="bg-gray-100 px-3 py-1 rounded-md font-mono text-xs max-w-xs break-all text-right">
+                    {machineTopic}
+                  </code>
                 </div>
               </div>
             </div>
