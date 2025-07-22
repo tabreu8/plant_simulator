@@ -11,7 +11,7 @@ interface QualityResultProps {
 export default function QualityResult({ position, lastPart, qualityResult, timestamp, machinePhase }: QualityResultProps) {
   const getQualityColor = (result: string | null, phase?: string): string => {
     // If machine is not in idle or sorting phase, show inspecting state
-    if (phase && phase !== 'idle' && phase !== 'sorting') {
+    if (phase && phase !== 'idle') {
       return 'bg-yellow-500 border-yellow-600 text-white'
     }
     
@@ -32,7 +32,7 @@ export default function QualityResult({ position, lastPart, qualityResult, times
 
   const getQualityIcon = (result: string | null, phase?: string): string => {
     // If machine is not in idle or sorting phase, show inspecting icon
-    if (phase && phase !== 'idle' && phase !== 'sorting') {
+    if (phase && phase !== 'idle') {
       return '⏳'
     }
     
@@ -53,7 +53,7 @@ export default function QualityResult({ position, lastPart, qualityResult, times
 
   const getQualityLabel = (result: string | null, phase?: string): string => {
     // If machine is not in idle or sorting phase, show WAIT
-    if (phase && phase !== 'idle' && phase !== 'sorting') {
+    if (phase && phase !== 'idle') {
       return 'WAIT'
     }
     
