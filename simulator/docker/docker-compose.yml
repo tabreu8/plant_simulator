@@ -1,0 +1,53 @@
+services:
+  plant-simulator:
+    build: 
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: plant_simulator
+    restart: unless-stopped
+    environment:
+      - MQTT_BROKER_HOST=mqtt-broker
+      - MQTT_BROKER_PORT=1883
+      - MQTT_USERNAME=
+      - MQTT_PASSWORD=
+      - SIMULATION_SPEED=1.0
+      - LOG_LEVEL=INFO
+    depends_on:
+      mqtt-broker:
+        condition: service_started
+    networks:
+      - plant-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('mqtt-broker', 1883))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: mqtt_broker
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"  # WebSocket port for web clients
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mqtt_data:/mosquitto/data
+      - mqtt_logs:/mosquitto/log
+    networks:
+      - plant-network
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_pub -h localhost -t test -m 'health check' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  plant-network:
+    driver: bridge
+
+volumes:
+  mqtt_data:
+  mqtt_logs:
